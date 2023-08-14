@@ -1,5 +1,7 @@
 import time
 import pyautogui
+from colorama import init, Fore, Back, Style
+
 
 # Hello
 
@@ -16,14 +18,14 @@ class Controller:
 
     @staticmethod
     def perform_action(command):
-        print(f"Attempting to perform action: {command}")
+        print(f"{Fore.CYAN}Attempting to perform action: {command}{Fore.RESET}")
 
         if command.startswith("turn"):
             Controller.turn_head(command)
             return
 
         if command not in Controller.ALLOWED_MESSAGES:
-            print(f"Unknown or disallowed command: {command}")
+            print(f"{Fore.RED}Unknown or disallowed command: {command}{Fore.RESET}")
             return
 
         key_mappings = {
@@ -59,9 +61,9 @@ class Controller:
             else:
                 time.sleep(0.3)
             pyautogui.keyUp(key)
-            print(f"Pressed '{key}'")
+            print(f"{Fore.GREEN}Player Clicked '{key}'{Fore.RESET}")
         else:
-            print(f"Unknown action: {command}")
+            print(f"{Fore.RED}Unknown action: {command}{Fore.RESET}")
 
     @staticmethod
     def turn_head(command):
@@ -74,4 +76,4 @@ class Controller:
 
         dx, dy = turn_mappings.get(command, (0, 0))
         pyautogui.moveRel(dx, dy, duration=0.2)
-        print(f"Turned head {command.split(' ')[1]}")
+        print(f"{Fore.YELLOW}Turned head {command.split(' ')[1]}{Fore.RESET}")
