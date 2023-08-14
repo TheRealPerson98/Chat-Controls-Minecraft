@@ -17,7 +17,7 @@ class Auth:
             self.youtube = build('youtube', 'v3', credentials=self.credentials)
         except Exception as e:
             print(Fore.RED + "There was an issue with client.json. Please check the file and try again." + Fore.RESET)
-            sys.exit(1)  # This will exit the script. If you don't want to exit, you can remove this line.
+            sys.exit(1)
 
     def get_live_broadcast_id(self):
         request = self.youtube.liveBroadcasts().list(
@@ -72,6 +72,6 @@ class Auth:
                 return None
             elif Auth.is_quota_error(e):
                 print(Fore.RED + "YouTube API quota exceeded. Please try again later." + Fore.RESET)
-                sys.exit(1)  # Exit the program if quota is exceeded
+                sys.exit(1)
             else:
                 raise

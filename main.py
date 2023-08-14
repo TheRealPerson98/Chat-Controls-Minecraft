@@ -35,14 +35,12 @@ def display_startup_message():
 
 
 def check_configurations():
-    # Check if client.json exists
     if not os.path.exists("client.json"):
         print("ERROR: client.json file missing!")
         sys.exit(1)
 
 
 def install_required_packages():
-    # Correct package names for pip installation
     packages = {
         'googleapiclient': 'google-api-python-client',
         'google_auth_oauthlib': 'google-auth-oauthlib',
@@ -59,7 +57,6 @@ def install_required_packages():
                 print(f"Installing {package_name}...")
                 subprocess.check_call([sys.executable, '-m', 'pip', 'install', package_name])
                 print(f"{package_name} installed successfully!")
-
 
 
 class Main:
@@ -82,9 +79,8 @@ class Main:
                     break
                 time.sleep(5)
             else:
-                # This section is added to handle the "Live chat has ended" scenario
                 print("Live chat has ended.")
-                time.sleep(60)  # wait for 1 minute before trying again
+                time.sleep(60)
                 continue
 
     def run(self):
@@ -97,12 +93,15 @@ class Main:
 
 
 if __name__ == "__main__":
-    display_startup_message()
-    install_required_packages()
-    check_configurations()
-    print(Fore.GREEN)
-    print("Loaded\n\n")  # "Loaded" message after installing packages and checking configurations
-    print(Fore.RESET)
+    try:
+        display_startup_message()
+        install_required_packages()
+        check_configurations()
+        print(Fore.GREEN)
+        print("Loaded\n\n")
+        print(Fore.RESET)
 
-    main_app = Main()
-    main_app.run()
+        main_app = Main()
+        main_app.run()
+    except KeyboardInterrupt:
+        print(Fore.RED + "\nThank you for using me. Have a good day!" + Fore.RESET)
