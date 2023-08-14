@@ -3,6 +3,7 @@ import pyautogui
 from colorama import init, Fore, Back, Style
 import pygetwindow as gw
 
+
 class Controller:
     ALLOWED_MESSAGES = [
         "w", "a", "s", "d", "space", "attack", "place", "mine",
@@ -105,4 +106,3 @@ class Controller:
         dx, dy = Controller.TURN_MAPPINGS.get(command, (0, 0))
         pyautogui.moveRel(dx, dy, duration=0.2)
         print(f"{Fore.YELLOW}Turned head {command.split(' ')[1]}{Fore.RESET}")
-

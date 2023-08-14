@@ -4,8 +4,9 @@ import sys
 import time
 from colorama import init, Fore, Back, Style
 import importlib
+import asyncio
 
-from auth import Auth
+from auth import YouTubeAuth, TikTokAuth, TwitchAuth
 from controller import Controller
 
 init()
@@ -59,37 +60,59 @@ def install_required_packages():
                 print(f"{package_name} installed successfully!")
 
 
+def choose_platforms():
+    print("Select the platforms you want to authenticate with (comma separated):")
+    print("1: YouTube")
+    print("2: TikTok")
+    print("3: Twitch")
+
+    choices = input("Enter the numbers of your choices (e.g. '1,2' for YouTube and TikTok): ").split(',')
+    auth_methods = []
+    for choice in choices:
+        choice = choice.strip()
+        if choice == "1":
+            auth_methods.append(YouTubeAuth())
+        elif choice == "2":
+            auth_methods.append(TikTokAuth())  # Uncomment when you've defined TikTokAuth
+        elif choice == "3":
+            auth_methods.append(TwitchAuth())  # Uncomment when you've defined TwitchAuth
+        else:
+            print(f"Invalid choice: {choice}")
+            sys.exit(1)
+    return auth_methods
+
+
 class Main:
     def __init__(self):
-        self.auth = Auth()
+        self.auths = choose_platforms()
         self.controller = Controller()
 
-    def listen_to_live_chat(self, live_chat_id):
-        next_page_token = None
+    async def listen_to_live_chat(self, auth, live_chat_id):
         while True:
-            response = self.auth.get_chat_messages(live_chat_id, next_page_token)
+            response = auth.get_chat_messages(live_chat_id)
             if response:
-                for item in response['items']:
+                for item in response.get('items', []):  # make sure 'items' exists
                     message = item['snippet']['textMessageDetails']['messageText']
                     print(f"Message: {message}")
                     if Controller.is_valid_message(message):
                         Controller.perform_action(message)
-                next_page_token = response.get("nextPageToken")
-                if next_page_token is None:
-                    break
-                time.sleep(5)
+                await asyncio.sleep(5)  # wait for 5 seconds before next poll
             else:
                 print("Live chat has ended.")
-                time.sleep(60)
-                continue
+                await asyncio.sleep(60)  # wait for 60 seconds before checking again
+
+    async def run_platform_listener(self, auth):
+        broadcast_id = auth.get_live_broadcast_id()
+        if broadcast_id:
+            live_chat_id = auth.get_live_chat_id_from_broadcast(broadcast_id)
+            await self.listen_to_live_chat(auth, live_chat_id)
+        else:
+            print(f"No active livestream found for {type(auth).__name__}.")
 
     def run(self):
-        broadcast_id = self.auth.get_live_broadcast_id()
-        if broadcast_id:
-            live_chat_id = self.auth.get_live_chat_id_from_broadcast(broadcast_id)
-            self.listen_to_live_chat(live_chat_id)
-        else:
-            print("No active livestream found for this channel.")
+        loop = asyncio.get_event_loop()
+        tasks = [self.run_platform_listener(auth) for auth in self.auths]
+        loop.run_until_complete(asyncio.gather(*tasks))
 
 
 if __name__ == "__main__":
