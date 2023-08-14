@@ -12,7 +12,7 @@ Install the necessary Python packages:
 pip install --upgrade google-api-python-client google-auth-oauthlib colorama
 ```
 ```bash
-git clone https://github.com/your-username/Chat-Controls-Minecraft.git
+git clone https://github.com/TheRealPerson98/Chat-Controls-Minecraft
 cd Chat-Controls-Minecraft
 ```
 
