@@ -1,6 +1,7 @@
 import time
 import pyautogui
 
+# Hello
 
 class Controller:
     ALLOWED_MESSAGES = [
