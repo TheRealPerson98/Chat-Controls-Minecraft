@@ -1,18 +1,16 @@
+import asyncio
 import os
-import subprocess
 import sys
 import time
-from colorama import init, Fore, Back, Style
-import importlib
-import asyncio
+
+from colorama import init, Fore
 
 from auth.MessageStore import MessageStore
 from auth.TikTokAuth import TikTokAuth
-from auth.TwitchAuth import TwitchAuth
 from auth.YouTubeAuth import YouTubeAuth
 from controller import Controller
 
-init()
+init(autoreset=True)
 
 
 def display_startup_message():
@@ -44,44 +42,31 @@ def check_configurations():
         sys.exit(1)
 
 
-def install_required_packages():
-    packages = {
-        'googleapiclient': 'google-api-python-client',
-        'google_auth_oauthlib': 'google-auth-oauthlib',
-        'pyautogui': 'pyautogui',
-        'colorama': 'colorama',
-    }
-    for module_name, package_name in packages.items():
-        try:
-            importlib.import_module(module_name)
-        except ImportError:
-            print(f"{package_name} not found!")
-            proceed = input(f"Do you want to install {package_name}? (y/n): ")
-            if proceed.lower() == 'y':
-                print(f"Installing {package_name}...")
-                subprocess.check_call([sys.executable, '-m', 'pip', 'install', package_name])
-                print(f"{package_name} installed successfully!")
-
-
 def choose_platforms():
-    print("Select the platforms you want to authenticate with (comma separated):")
-    print("1: YouTube")
-    print("2: TikTok")
-    print("3: Twitch")
+    print(Fore.CYAN + "Select the platforms you want to authenticate with (comma separated):")
+    print(Fore.YELLOW + "1: YouTube")
+    print(Fore.YELLOW + "2: TikTok")
 
-    choices = input("Enter the numbers of your choices (e.g. '1,2' for YouTube and TikTok): ").split(',')
-    auth_methods = []
-    for choice in choices:
-        choice = choice.strip()
-        if choice == "1":
-            auth_methods.append(YouTubeAuth())
-        elif choice == "2":
-            auth_methods.append(TikTokAuth())  # Uncomment when you've defined TikTokAuth
-        elif choice == "3":
-            auth_methods.append(TwitchAuth())  # Uncomment when you've defined TwitchAuth
-        else:
-            print(f"Invalid choice: {choice}")
-            sys.exit(1)
+    while True:  # Keep looping until valid input is received
+        choices = input(Fore.GREEN + "Enter the numbers of your choices (e.g. '1,2' for YouTube and TikTok): ").split(
+            ',')
+        auth_methods = []
+        invalid_choices = False  # Flag to check if any choice is invalid
+
+        for choice in choices:
+            choice = choice.strip()
+            if choice == "1":
+                auth_methods.append(YouTubeAuth())
+            elif choice == "2":
+                auth_methods.append(TikTokAuth())
+            else:
+                print(Fore.RED + f"Invalid choice: {choice}. Please enter valid choices.")
+                invalid_choices = True
+                break  # Break out of the for loop
+
+        if not invalid_choices:  # If all choices are valid, break out of the while loop
+            break
+
     return auth_methods
 
 
@@ -90,11 +75,17 @@ message_store = MessageStore()
 
 class Main:
     def __init__(self):
+
+        try:
+            os.remove('message.txt')
+        except FileNotFoundError:
+            pass
+
         self.auths = choose_platforms()
         self.controller = Controller()
 
     async def listen_to_live_chat(self, auth):
-        print("Listening to live chat...")
+        print(Fore.GREEN + "Listening to live chat...")
 
         while True:
             messages = message_store.get_messages()
@@ -104,7 +95,7 @@ class Main:
                 for message_tuple in messages:
                     message_text = message_tuple[0]
                     print(f"[{message_text}]")
-                    if self.controller.is_valid_message(message_text):  # Pass the message text directly
+                    if self.controller.is_valid_message(message_text):
                         self.controller.perform_action(message_text)
 
                         processed_count += 1
@@ -119,8 +110,6 @@ class Main:
             await auth.start()  # Start TikTokAuth client
         elif isinstance(auth, YouTubeAuth):
             await auth.start()  # Start YouTubeAuth client (if you have such a method)
-        elif isinstance(auth, TwitchAuth):
-            await auth.start()  # Start TwitchAuth client (if you have such a method)
 
         await self.listen_to_live_chat(auth)
 
