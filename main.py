@@ -6,7 +6,10 @@ from colorama import init, Fore, Back, Style
 import importlib
 import asyncio
 
-from auth import YouTubeAuth, TikTokAuth, TwitchAuth, MessageStore
+from auth.MessageStore import MessageStore
+from auth.TikTokAuth import TikTokAuth
+from auth.TwitchAuth import TwitchAuth
+from auth.YouTubeAuth import YouTubeAuth
 from controller import Controller
 
 init()
@@ -91,29 +94,34 @@ class Main:
         self.controller = Controller()
 
     async def listen_to_live_chat(self, auth):
-        print("Listening to live chat...")  # Debug line
+        print("Listening to live chat...")
 
         while True:
             messages = message_store.get_messages()
-            print(f"Stored Messages: {messages}")
 
             if messages:
                 processed_count = 0  # Counter to keep track of processed messages
-                for platform, user, message in messages:
-                    print(f"[{message}")
-                    if self.controller.is_valid_message(message):  # Changed to instance method
-                        self.controller.perform_action(message)  # Changed to instance method
+                for message_tuple in messages:
+                    message_text = message_tuple[0]
+                    print(f"[{message_text}]")
+                    if self.controller.is_valid_message(message_text):  # Pass the message text directly
+                        self.controller.perform_action(message_text)
+
                         processed_count += 1
                 # Remove all the processed messages from the file
                 message_store.remove_processed_messages(processed_count)
                 await asyncio.sleep(5)  # wait for 5 seconds before the next poll
             else:
-                print("No messages in the store right now.")  # Debug line
                 await asyncio.sleep(5)
 
     async def run_platform_listener(self, auth):
         if isinstance(auth, TikTokAuth):
-            await auth.start()  # Start TikTokAuth client (if you have such a method)
+            await auth.start()  # Start TikTokAuth client
+        elif isinstance(auth, YouTubeAuth):
+            await auth.start()  # Start YouTubeAuth client (if you have such a method)
+        elif isinstance(auth, TwitchAuth):
+            await auth.start()  # Start TwitchAuth client (if you have such a method)
+
         await self.listen_to_live_chat(auth)
 
     async def run(self):

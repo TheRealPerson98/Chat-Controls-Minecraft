@@ -46,7 +46,7 @@ class Controller:
 
     @staticmethod
     def is_valid_message(message):
-        return message in Controller.ALLOWED_MESSAGES
+        return message.strip() in Controller.ALLOWED_MESSAGES
 
     @staticmethod
     def is_minecraft_active():
@@ -64,8 +64,6 @@ class Controller:
         if not Controller.is_minecraft_active():
             print(f"{Fore.RED}Minecraft is not the active window. No action performed.{Fore.RESET}")
             return
-
-        print(f"{Fore.CYAN}Attempting to perform action: {command}{Fore.RESET}")
 
         if command == "dance":
             for _ in range(5):  # Repeat 5 times
