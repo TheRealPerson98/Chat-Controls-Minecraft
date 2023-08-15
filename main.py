@@ -6,7 +6,7 @@ from colorama import init, Fore, Back, Style
 import importlib
 import asyncio
 
-from auth import YouTubeAuth, TikTokAuth, TwitchAuth
+from auth import YouTubeAuth, TikTokAuth, TwitchAuth, MessageStore
 from controller import Controller
 
 init()
@@ -82,37 +82,43 @@ def choose_platforms():
     return auth_methods
 
 
+message_store = MessageStore()
+
+
 class Main:
     def __init__(self):
         self.auths = choose_platforms()
         self.controller = Controller()
 
-    async def listen_to_live_chat(self, auth, live_chat_id):
+    async def listen_to_live_chat(self, auth):
+        print("Listening to live chat...")  # Debug line
+
         while True:
-            response = auth.get_chat_messages(live_chat_id)
-            if response:
-                for item in response.get('items', []):  # make sure 'items' exists
-                    message = item['snippet']['textMessageDetails']['messageText']
-                    print(f"Message: {message}")
-                    if Controller.is_valid_message(message):
-                        Controller.perform_action(message)
-                await asyncio.sleep(5)  # wait for 5 seconds before next poll
+            messages = message_store.get_messages()
+            print(f"Stored Messages: {messages}")
+
+            if messages:
+                processed_count = 0  # Counter to keep track of processed messages
+                for platform, user, message in messages:
+                    print(f"[{message}")
+                    if self.controller.is_valid_message(message):  # Changed to instance method
+                        self.controller.perform_action(message)  # Changed to instance method
+                        processed_count += 1
+                # Remove all the processed messages from the file
+                message_store.remove_processed_messages(processed_count)
+                await asyncio.sleep(5)  # wait for 5 seconds before the next poll
             else:
-                print("Live chat has ended.")
-                await asyncio.sleep(60)  # wait for 60 seconds before checking again
+                print("No messages in the store right now.")  # Debug line
+                await asyncio.sleep(5)
 
     async def run_platform_listener(self, auth):
-        broadcast_id = auth.get_live_broadcast_id()
-        if broadcast_id:
-            live_chat_id = auth.get_live_chat_id_from_broadcast(broadcast_id)
-            await self.listen_to_live_chat(auth, live_chat_id)
-        else:
-            print(f"No active livestream found for {type(auth).__name__}.")
+        if isinstance(auth, TikTokAuth):
+            await auth.start()  # Start TikTokAuth client (if you have such a method)
+        await self.listen_to_live_chat(auth)
 
-    def run(self):
-        loop = asyncio.get_event_loop()
-        tasks = [self.run_platform_listener(auth) for auth in self.auths]
-        loop.run_until_complete(asyncio.gather(*tasks))
+    async def run(self):
+        listening_tasks = [self.run_platform_listener(auth) for auth in self.auths]
+        await asyncio.gather(*listening_tasks)
 
 
 if __name__ == "__main__":
@@ -125,6 +131,6 @@ if __name__ == "__main__":
         print(Fore.RESET)
 
         main_app = Main()
-        main_app.run()
+        asyncio.run(main_app.run())
     except KeyboardInterrupt:
         print(Fore.RED + "\nThank you for using me. Have a good day!" + Fore.RESET)
