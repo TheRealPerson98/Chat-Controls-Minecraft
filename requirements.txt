@@ -1,8 +1,8 @@
-colorama
+colorama~=0.4.6
 google-api-python-client
 google-auth-oauthlib
-pyautogui
-TikTokLive
-pygetwindow
+pyautogui~=0.9.54
+TikTokLive~=5.0.8
+pygetwindow~=0.0.9
 pickle
-asyncio
+asyncio~=3.4.3
