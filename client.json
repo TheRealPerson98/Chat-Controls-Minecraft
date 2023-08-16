@@ -1,1 +1,1 @@
-//add ur AUTH0 here
+{"installed":{"client_id":"929940074193-b2jjfmat6g6u7d9vmsjjes9avs0ho2s2.apps.googleusercontent.com","project_id":"apitest-392409","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost"]}}

@@ -46,6 +46,7 @@ def choose_platforms():
     print(Fore.CYAN + "Select the platforms you want to authenticate with (comma separated):")
     print(Fore.YELLOW + "1: YouTube")
     print(Fore.YELLOW + "2: TikTok")
+    print(Fore.YELLOW + "3: Clear Auth")
 
     while True:  # Keep looping until valid input is received
         choices = input(Fore.GREEN + "Enter the numbers of your choices (e.g. '1,2' for YouTube and TikTok): ").split(
@@ -59,6 +60,8 @@ def choose_platforms():
                 auth_methods.append(YouTubeAuth())
             elif choice == "2":
                 auth_methods.append(TikTokAuth())
+            elif choice == "3":
+                clear_auth()
             else:
                 print(Fore.RED + f"Invalid choice: {choice}. Please enter valid choices.")
                 invalid_choices = True
@@ -68,6 +71,29 @@ def choose_platforms():
             break
 
     return auth_methods
+
+
+def clear_auth():
+    print(Fore.CYAN + "Which platform's authentication would you like to clear?")
+    print(Fore.YELLOW + "1: YouTube")
+    print(Fore.YELLOW + "2: TikTok")
+
+    choice = input(Fore.GREEN + "Enter the number of your choice: ").strip()
+
+    if choice == "1":
+        # Clear YouTube authentication by emptying the client.json file
+        with open("client.json", "w") as file:
+            file.write("{}")
+        print(Fore.RED + "YouTube authentication cleared!")
+    elif choice == "2":
+        # Clear TikTok authentication by deleting the tiktok_auth.pkl file
+        try:
+            os.remove("tiktok_auth.pkl")
+            print(Fore.RED + "TikTok authentication cleared!")
+        except FileNotFoundError:
+            print(Fore.RED + "TikTok authentication file not found!")
+    else:
+        print(Fore.RED + f"Invalid choice: {choice}. Please enter a valid choice.")
 
 
 message_store = MessageStore()
@@ -121,7 +147,6 @@ class Main:
 if __name__ == "__main__":
     try:
         display_startup_message()
-        install_required_packages()
         check_configurations()
         print(Fore.GREEN)
         print("Loaded\n\n")
